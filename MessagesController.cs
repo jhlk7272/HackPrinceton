@@ -16,6 +16,11 @@ namespace HappyBot
     public static class Globals
     {
         public static int interactionCount = 0;
+        public static float[] pastMood = { 0, 0, 0, 0, 0, 0, 0, 0 };
+        public static float maxMood = 0;
+        public static int maxMoodIndex = 0;
+        public static float maxMoodNew = 0;
+        public static int maxMoodIndexNew = 0;
     }
 
         [BotAuthentication]
@@ -34,24 +39,20 @@ namespace HappyBot
             if (activity.Type == ActivityTypes.Message)
             {
                 //ConnectorClient connector = new ConnectorClient(new Uri(activity.ServiceUrl));
-                // calculate something for us to return
-                int length = (activity.Text ?? string.Empty).Length;
-               
-                float[] pastMood = { 0, 0, 0, 0, 0, 0, 0, 0 };
 
                 // return our reply to the user
                 Activity reply = activity.CreateReply("");
                 if (activity.Text.Contains("hi") || activity.Text.Contains("Hi") || activity.Text.Contains("hello") || activity.Text.Contains("Hello") || activity.Text.Contains("hey") || activity.Text.Contains("Hey"))
                 {
                     Globals.interactionCount++;
-                    reply = activity.CreateReply($"Hello, my name is HappyBot! How's your day going?" + Globals.interactionCount);
+                    reply = activity.CreateReply($"Hello, my name is HappyBot! How's your day going?");
                 }
-                else if (activity.Text.Contains("yes") || activity.Text.Contains("YES") || activity.Text.Contains("yea") || activity.Text.Contains("YEA") || activity.Text.Contains("hey") || activity.Text.Contains("Hey"))
+                else if (activity.Text.Contains("yes") || activity.Text.Contains("YES") || activity.Text.Contains("yea") || activity.Text.Contains("YEA") || activity.Text.Contains("su") || activity.Text.Contains("SU"))
                 {
                     //HAPPYIERRESPONSE
                     reply = activity.CreateReply($"sure here's another happy thing!");
                 }
-                else if (activity.Text.Contains("no") || activity.Text.Contains("NO") || activity.Text.Contains("Bye") || activity.Text.Contains("No") || activity.Text.Contains("nu") || activity.Text.Contains("na") || activity.Text.Contains("Nu"))
+                else if (Globals.interactionCount > 1 && (activity.Text.Contains("no") || activity.Text.Contains("NO") || activity.Text.Contains("Bye") || activity.Text.Contains("No") || activity.Text.Contains("nu") || activity.Text.Contains("na") || activity.Text.Contains("Nu")))
                 {
                     //BYE
                     reply = activity.CreateReply($"Hope you have a great day! See you again soon :) ");
@@ -94,8 +95,7 @@ namespace HappyBot
                     //reading from text file
                     string[] currentMoodString = File.ReadAllLines(@"C:\Users\Joohyun\Desktop\HackPrinceton\VideoAnalyzer\WriteLines.txt", Encoding.UTF8);
                     //change it back to float and store into a local array, then compare it against existing values to detect spikes or changes
-                    float maxMood = 0;
-                    int maxMoodIndex = 0;
+                    
                     //very first remedy
                     if (Globals.interactionCount == 1)
                     {
@@ -103,20 +103,29 @@ namespace HappyBot
                         //convert to float and find the max
                         for (int i = 0; i < 8; i++)
                         {
-                            pastMood[i] = float.Parse(currentMoodString[i]);
-                            if (pastMood[i] >= maxMood)
+                            Globals.pastMood[i] = float.Parse(currentMoodString[i]);
+                            if (Globals.pastMood[i] >= Globals.maxMood)
                             {
-                                maxMood = pastMood[i];
-                                maxMoodIndex = i;
+                                Globals.maxMood = Globals.pastMood[i];
+                                Globals.maxMoodIndex = i;
                             }
                         }
 
                         //you know the dominant mood, here's the response if it's a negative mood
                         //anger, contempt, disgust, fear, sadness, neutral we show a happy respose here
-                        if (maxMoodIndex == 0 || maxMoodIndex == 1 || maxMoodIndex == 2 || maxMoodIndex == 3 || maxMoodIndex == 5 || maxMoodIndex == 6)
+                        if (Globals.maxMoodIndex == 0 || Globals.maxMoodIndex == 1 || Globals.maxMoodIndex == 2 || Globals.maxMoodIndex == 3 || Globals.maxMoodIndex == 5 || Globals.maxMoodIndex == 6)
                         {
-                            //INSERT HAPpyrePONSE HERE
-                            reply = activity.CreateReply($"HAPPY THING SINCE you're SAD TypE KITTy");
+                            //since you're sad/neutral here's a happy thing
+                            //Attachment attachment3;
+                            //attachment3.ContentUrl = $"http://i.imgur.com/sgMXV.jpg";
+                            //attachment3.ContentType = "image/jpg";
+                            //attachment3.Name = "RedPanda";
+                            //reply.Attachments = new List<Attachment>();
+                            //reply.Attachments.Add(attachment3);
+               
+                            reply = activity.CreateReply($"Oh no, you don't seem to be having too good a day. So here's something to cheer you up! ");
+
+
 
                         }
                         else
@@ -131,26 +140,22 @@ namespace HappyBot
                     else 
                     {
 
-                        //Console.WriteLine("break2");
-                        float maxMoodNew = 0;
-                        int maxMoodIndexNew = 0;
-
                         float[] currentMood = { 0, 0, 0, 0, 0, 0, 0, 0 };
                         //convert to float and find the max
                         for (int i = 0; i < 8; i++)
                         {
                             currentMood[i] = float.Parse(currentMoodString[i]);
-                            if (currentMood[i] >= maxMoodNew)
+                            if (currentMood[i] >= Globals.maxMoodNew)
                             {
-                                maxMoodNew = currentMood[i];
-                                maxMoodIndexNew = i;
+                                Globals.maxMoodNew = currentMood[i];
+                                Globals.maxMoodIndexNew = i;
                             }
                         }
 
                         //compare between past mood and current mood
                         //if the past mood 
-                        if(maxMoodIndex == 0 || maxMoodIndex == 1 || maxMoodIndex == 2 || maxMoodIndex == 3 || maxMoodIndex == 5 || maxMoodIndex == 6){
-                            if (maxMoodIndexNew == 0 || maxMoodIndexNew == 1 || maxMoodIndexNew == 2 || maxMoodIndexNew == 3 || maxMoodIndexNew == 5 || maxMoodIndexNew == 6)
+                        if(Globals.maxMoodIndex == 0 || Globals.maxMoodIndex == 1 || Globals.maxMoodIndex == 2 || Globals.maxMoodIndex == 3 || Globals.maxMoodIndex == 5 || Globals.maxMoodIndex == 6){
+                            if (Globals.maxMoodIndexNew == 0 || Globals.maxMoodIndexNew == 1 || Globals.maxMoodIndexNew == 2 || Globals.maxMoodIndexNew == 3 || Globals.maxMoodIndexNew == 5 || Globals.maxMoodIndexNew == 6)
                             {
                                 //HARRASSMENT REPLY
                                 reply = activity.CreateReply($"ARE YOU HARRASSED? HERE ARE RESOURCES?" + Globals.interactionCount);
@@ -163,7 +168,7 @@ namespace HappyBot
                         //you were happy in the past
                         else
                         {
-                            if (maxMoodIndexNew == 0 || maxMoodIndexNew == 1 || maxMoodIndexNew == 2 || maxMoodIndexNew == 3 || maxMoodIndexNew == 5 || maxMoodIndexNew == 6)
+                            if (Globals.maxMoodIndexNew == 0 || Globals.maxMoodIndexNew == 1 || Globals.maxMoodIndexNew == 2 || Globals.maxMoodIndexNew == 3 || Globals.maxMoodIndexNew == 5 || Globals.maxMoodIndexNew == 6)
                             {
                                 reply = activity.CreateReply("Oh no! You didn't like it? Do you want me to try and cheer you up again? :o ");
                             }
